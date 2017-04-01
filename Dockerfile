@@ -3,7 +3,7 @@
 
 FROM ubuntu
 
-MAINTAINER tracer0tong <yuriy.leonychev@gmail.com>
+MAINTAINER Antonio Manuel Hernández Sánchez
 
 # Specially for SSH access and port redirection
 ENV ROOTPASSWORD android
@@ -27,8 +27,13 @@ RUN apt-get -y update && \
     apt-get -y install oracle-java7-installer && \
     rm -rf /var/lib/apt/lists/*
 
+# Install packages needed for android sdk tools
+RUN dpkg --add-architecture i386 && \
+    apt-get update && \
+    apt-get -y install libstdc++6:i386 libgcc1:i386 zlib1g:i386 libncurses5:i386
+
 # Install android sdk
-RUN wget -qO- http://dl.google.com/android/android-sdk_r23-linux.tgz | \
+RUN wget -qO- http://dl.google.com/android/android-sdk_r24-linux.tgz | \
     tar xvz -C /usr/local/ && \
     mv /usr/local/android-sdk-linux /usr/local/android-sdk && \
     chown -R root:root /usr/local/android-sdk/
@@ -42,8 +47,12 @@ ENV PATH $PATH:$ANDROID_HOME/platform-tools
 ENV JAVA_HOME /usr/lib/jvm/java-7-oracle
 
 # Install latest android tools and system images
+#RUN ( sleep 4 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk --no-ui --force -a --filter \
+#    platform-tool,android-19,android-21,android-22,build-tools-22.0.1,sys-img-x86-android-19,sys-img-x86-android-21,sys-img-x86-android-22,sys-img-armeabi-v7a-android-19,sys-img-armeabi-v7a-android-21,sys-img-armeabi-v7a-android-22 && \
+#    echo "y" | android update adb
+
 RUN ( sleep 4 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk --no-ui --force -a --filter \
-    platform-tool,android-19,android-21,android-22,build-tools-22.0.1,sys-img-x86-android-19,sys-img-x86-android-21,sys-img-x86-android-22,sys-img-armeabi-v7a-android-19,sys-img-armeabi-v7a-android-21,sys-img-armeabi-v7a-android-22 && \
+    platform-tool,android-23,build-tools-23.0.1,sys-img-x86-android-23,sys-img-armeabi-v7a-android-23 && \
     echo "y" | android update adb
 
 # Create fake keymap file
@@ -58,7 +67,6 @@ RUN mkdir /var/run/sshd && \
     echo "export VISIBLE=now" >> /etc/profile
 
 ENV NOTVISIBLE "in users profile"
-
 # Add entrypoint
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
